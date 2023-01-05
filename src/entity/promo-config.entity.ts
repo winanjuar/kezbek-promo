@@ -12,6 +12,18 @@ export class PromoConfig {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: true })
+  promo_code: string;
+
+  @Column({ nullable: true })
+  promo_quota: string;
+
+  @Column({ nullable: true })
+  promo_period_start: Date;
+
+  @Column({ nullable: true })
+  promo_period_end: Date;
+
   @Column()
   quantity: number;
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { IRequestInfoPromo } from './core/request-info-promo.interface';
+import { IResponseInfoPromo } from './core/response-info-promo.interface';
 import { CreatePromoDto } from './dto/create-promo.dto';
-import { RequestPromoDto } from './dto/request-promo.dto';
 import { PromoTransaction } from './entity/promo-transaction.entity';
 import { PromoConfigRepository } from './repository/promo-config.repository';
 import { PromoTransactionRepository } from './repository/promo-transaction.repository';
@@ -24,19 +25,20 @@ export class AppService {
     return this.promoConfigRepository.findOnePromo(id);
   }
 
-  async processPromo(requestPromoDto: Partial<RequestPromoDto>) {
-    const quantity =
-      requestPromoDto.quantity > 3 ? 3 : requestPromoDto.quantity;
-    const newReqDto: Partial<RequestPromoDto> = {
-      quantity: requestPromoDto.quantity > 3 ? 3 : requestPromoDto.quantity,
-      act_trx: requestPromoDto.act_trx,
+  async processPromo(
+    dataReqPromo: IRequestInfoPromo,
+  ): Promise<IResponseInfoPromo> {
+    const quantity = dataReqPromo.quantity > 3 ? 3 : dataReqPromo.quantity;
+    const newReqDto: Partial<IRequestInfoPromo> = {
+      quantity: dataReqPromo.quantity > 3 ? 3 : dataReqPromo.quantity,
+      act_trx: dataReqPromo.act_trx,
     };
     const promo = await this.promoConfigRepository.findRequestPromo(newReqDto);
     const promoTransaction: Partial<PromoTransaction> = {
-      transaction_id: requestPromoDto.transaction_id,
-      quantity_origin: requestPromoDto.quantity,
+      transaction_id: dataReqPromo.transaction_id,
+      quantity_origin: dataReqPromo.quantity,
       quantity,
-      act_trx: requestPromoDto.act_trx,
+      act_trx: dataReqPromo.act_trx,
     };
     if (!promo) {
       promoTransaction.prosentase = 0;
@@ -44,12 +46,16 @@ export class AppService {
     } else {
       promoTransaction.prosentase = promo.prosentase;
       promoTransaction.point = Math.round(
-        (Number(promo.prosentase) * requestPromoDto.act_trx) / 100,
+        (Number(promo.prosentase) * dataReqPromo.act_trx) / 100,
       );
     }
     const result = await this.promoTransactionRepository.createNewTransaction(
       promoTransaction,
     );
-    return result;
+
+    return {
+      prosentase: result.prosentase,
+      point: result.point,
+    } as IResponseInfoPromo;
   }
 }

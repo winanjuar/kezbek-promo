@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
+import { IRequestInfoPromo } from './core/request-info-promo.interface';
+import { IResponseInfoPromo } from './core/response-info-promo.interface';
 import { CreatePromoDto } from './dto/create-promo.dto';
-import { RequestPromoDto } from './dto/request-promo.dto';
-import { IPromoResponse } from './interface/promo-response.interface';
 @Controller({ version: '1' })
 export class AppController {
   private readonly logger = new Logger(AppController.name);
@@ -32,29 +32,26 @@ export class AppController {
     return this.appService.findOnePromo(id);
   }
 
-  @Post('promo')
-  processPromo(@Body() requestPromoDto: RequestPromoDto) {
-    return this.appService.processPromo(requestPromoDto);
-  }
-
   @MessagePattern('mp_transaction_point')
-  async handleTransactionPoint(@Payload() data: any) {
+  async handleTransactionPoint(
+    @Payload() data: IRequestInfoPromo,
+  ): Promise<IResponseInfoPromo> {
     try {
-      const promoDto: RequestPromoDto = {
+      const dataReqPromo: IRequestInfoPromo = {
         transaction_id: data.transaction_id,
         act_trx: data.act_trx,
         quantity: data.quantity,
+        promo_code: data.promo_code,
       };
 
-      const promo = await this.appService.processPromo(promoDto);
+      const promo = await this.appService.processPromo(dataReqPromo);
       this.logger.log(
-        `[MessagePattern mp_loyalty_point] ${promo.transaction_id} Calculate promo point successfully`,
+        `[MessagePattern mp_loyalty_point] [${data.transaction_id}] Calculate promo point successfully`,
       );
       return {
-        transaction_id: promo.transaction_id,
         prosentase: promo.prosentase,
         point: promo.point,
-      } as IPromoResponse;
+      } as IResponseInfoPromo;
     } catch (error) {
       this.logger.log(`[MessagePattern mp_loyalty_point] ${error}`);
       throw new InternalServerErrorException();
