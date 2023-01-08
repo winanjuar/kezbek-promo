@@ -3,7 +3,7 @@ import { IsNotEmpty, IsPositive, IsUUID } from 'class-validator';
 export class RequestPromoDto {
   @IsUUID()
   @IsNotEmpty()
-  transaction_id;
+  transaction_id: string;
 
   @IsPositive()
   @IsNotEmpty()

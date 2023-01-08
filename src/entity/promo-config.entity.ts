@@ -16,7 +16,7 @@ export class PromoConfig {
   promo_code: string;
 
   @Column({ nullable: true })
-  promo_quota: string;
+  promo_quota: number;
 
   @Column({ nullable: true })
   promo_period_start: Date;

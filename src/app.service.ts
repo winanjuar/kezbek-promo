@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PromoConstanta } from './core/promo.constanta';
 import { IRequestInfoPromo } from './core/request-info-promo.interface';
 import { IResponseInfoPromo } from './core/response-info-promo.interface';
 import { CreatePromoDto } from './dto/create-promo.dto';
@@ -14,23 +15,27 @@ export class AppService {
   ) {}
 
   async create(createPromoDto: CreatePromoDto) {
-    return this.promoConfigRepository.createNewPromo(createPromoDto);
+    return await this.promoConfigRepository.createNewPromo(createPromoDto);
   }
 
   async findAll() {
-    return this.promoConfigRepository.findAll();
+    return await this.promoConfigRepository.findAll();
   }
 
   async findOnePromo(id: string) {
-    return this.promoConfigRepository.findOnePromo(id);
+    return await this.promoConfigRepository.findOnePromo(id);
   }
 
   async processPromo(
     dataReqPromo: IRequestInfoPromo,
   ): Promise<IResponseInfoPromo> {
-    const quantity = dataReqPromo.quantity > 3 ? 3 : dataReqPromo.quantity;
+    const quantity =
+      dataReqPromo.quantity > PromoConstanta.MAX_QUANTITY
+        ? PromoConstanta.MAX_QUANTITY
+        : dataReqPromo.quantity;
+
     const newReqDto: Partial<IRequestInfoPromo> = {
-      quantity: dataReqPromo.quantity > 3 ? 3 : dataReqPromo.quantity,
+      quantity,
       act_trx: dataReqPromo.act_trx,
     };
     const promo = await this.promoConfigRepository.findRequestPromo(newReqDto);
