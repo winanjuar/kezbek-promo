@@ -97,11 +97,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[GET, /program/:code] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -139,11 +138,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[POST, /config] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -162,11 +160,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[GET, config/:id] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -187,11 +184,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[GET, config/:id] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -210,11 +206,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[GET, remain/:code] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -236,11 +231,10 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[POST, /transaction] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
@@ -270,11 +264,10 @@ export class AppController {
       } as IResponseInfoPromo;
     } catch (error) {
       this.logger.log(`[MessagePattern mp_loyalty_point] ${error}`);
-      switch (error.response.statusCode) {
-        case 404:
-          throw new NotFoundException(error.response.message);
-        default:
-          throw new InternalServerErrorException(error.response.message);
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
       }
     }
   }
