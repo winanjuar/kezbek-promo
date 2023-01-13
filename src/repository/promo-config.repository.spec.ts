@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource, IsNull, LessThanOrEqual, MoreThan } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { PromoConfigRepository } from './promo-config.repository';
 import { PromoConfig } from 'src/entity/promo-config.entity';
-import { CreatePromoDto } from 'src/dto/create-promo.dto';
-import { IRequestInfoPromo } from 'src/core/request-info-promo.interface';
+import { PromoProgram } from 'src/entity/promo-program.entity';
+import { EligibleConfigDto } from 'src/dto/request/config/eligible-config.dto';
 
 describe('PromoConfigRepository', () => {
   let promoConfigRepository: PromoConfigRepository;
   let mockPromoConfig: PromoConfig;
-  let promoDto: CreatePromoDto;
-  let requestPromoDto: Partial<IRequestInfoPromo>;
+  let mockPromoProgram: PromoProgram;
+  let configData: Partial<PromoConfig>;
 
   const dataSource = {
     createEntityManager: jest.fn(),
@@ -28,33 +28,41 @@ describe('PromoConfigRepository', () => {
       PromoConfigRepository,
     );
 
-    promoDto = {
+    configData = {
       quantity: faker.datatype.number(),
       min_trx: faker.datatype.number(),
       max_trx: faker.datatype.number(),
       prosentase: faker.datatype.float(),
-      promo_code: faker.datatype.string(),
-      promo_quota: faker.datatype.number(),
-      promo_period_start: new Date(),
-      promo_period_end: new Date(),
+    };
+
+    mockPromoProgram = {
+      id: faker.datatype.uuid(),
+      code_key: faker.datatype.string(),
+      quota: faker.datatype.number(),
+      period_start: '2023-01-01T00:00:00Z',
+      period_end: '2023-01-31T23:59:59.999Z',
+      created_at: '2023-01-01T00:02:00Z',
+      updated_at: '2023-01-01T00:02:00Z',
+      deleted_at: null,
+      configs: [],
     };
 
     mockPromoConfig = {
-      ...promoDto,
       id: faker.datatype.uuid(),
-      promo_code: faker.datatype.string(),
-      promo_quota: faker.datatype.number(),
-      promo_period_start: new Date(),
-      promo_period_end: new Date(),
-      created_at: '2023-01-08T05:41:47.908Z',
-      updated_at: '2023-01-08T05:41:47.908Z',
+      quantity: configData.quantity,
+      min_trx: configData.min_trx,
+      max_trx: configData.max_trx,
+      prosentase: configData.prosentase,
+      created_at: '2023-01-01T00:02:00Z',
+      updated_at: '2023-01-01T00:02:00Z',
       deleted_at: null,
+      program: mockPromoProgram,
     };
   });
 
   afterEach(() => jest.clearAllMocks());
 
-  describe('createNewPromo', () => {
+  describe('createNewConfig', () => {
     it('should return promo config', async () => {
       // arrange
       const spySave = jest
@@ -62,16 +70,18 @@ describe('PromoConfigRepository', () => {
         .mockResolvedValue(mockPromoConfig);
 
       // act
-      const promoConfig = await promoConfigRepository.createNewPromo(promoDto);
+      const promoConfig = await promoConfigRepository.createNewConfig(
+        configData,
+      );
 
       // assert
       expect(promoConfig).toEqual(mockPromoConfig);
       expect(spySave).toHaveBeenCalledTimes(1);
-      expect(spySave).toHaveBeenCalledWith(promoDto);
+      expect(spySave).toHaveBeenCalledWith(configData);
     });
   });
 
-  describe('findAll', () => {
+  describe('findAllConfig', () => {
     it('should return all promo config', async () => {
       // arrange
       const spyFind = jest
@@ -79,7 +89,7 @@ describe('PromoConfigRepository', () => {
         .mockResolvedValue([mockPromoConfig]);
 
       // act
-      const promoConfigs = await promoConfigRepository.findAll();
+      const promoConfigs = await promoConfigRepository.findAllConfig();
 
       // assert
       expect(promoConfigs).toEqual([mockPromoConfig]);
@@ -87,46 +97,36 @@ describe('PromoConfigRepository', () => {
     });
   });
 
-  describe('findOnePromo', () => {
-    it('should return all promo config', async () => {
+  describe('findOneConfig', () => {
+    it('should return promo config by id', async () => {
       // arrange
       const id = mockPromoConfig.id;
 
-      const spyFind = jest
-        .spyOn(promoConfigRepository, 'findOneBy')
+      const spyFindOne = jest
+        .spyOn(promoConfigRepository, 'findOne')
         .mockResolvedValue(mockPromoConfig);
 
       // act
-      const promoConfig = await promoConfigRepository.findOnePromo(id);
+      const promoConfig = await promoConfigRepository.findOneConfig(id);
 
       // assert
       expect(promoConfig).toEqual(mockPromoConfig);
-      expect(spyFind).toHaveBeenCalledTimes(1);
-      expect(spyFind).toHaveBeenCalledWith({ id });
+      expect(spyFindOne).toHaveBeenCalledTimes(1);
+      expect(spyFindOne).toHaveBeenCalledWith({
+        relations: ['program'],
+        where: { id },
+      });
     });
   });
 
-  describe('findRequestPromo', () => {
-    it('should return promo config with actual trx less than config max trx', async () => {
+  describe('findEligibleConfig', () => {
+    it('should return eligible config as request', async () => {
       // arrange
-      requestPromoDto = {
-        quantity: 1,
-        act_trx: 100000,
-      };
-
-      mockPromoConfig = {
-        id: faker.datatype.uuid(),
-        quantity: requestPromoDto.quantity,
-        min_trx: 0,
-        max_trx: 200000,
-        prosentase: faker.datatype.float(),
-        promo_code: faker.datatype.string(),
-        promo_quota: faker.datatype.number(),
-        promo_period_start: new Date(),
-        promo_period_end: new Date(),
-        created_at: '2023-01-08T05:41:47.908Z',
-        updated_at: '2023-01-08T05:41:47.908Z',
-        deleted_at: null,
+      const eligibleDto: EligibleConfigDto = {
+        transaction_time: '2023-01-08T00:00:00Z',
+        quantity: mockPromoConfig.quantity,
+        act_trx: faker.datatype.number(),
+        promo_code: mockPromoProgram.code_key,
       };
 
       const spyFindOne = jest
@@ -134,42 +134,22 @@ describe('PromoConfigRepository', () => {
         .mockResolvedValue(mockPromoConfig);
 
       // act
-      const promoConfig = await promoConfigRepository.findRequestPromo(
-        requestPromoDto,
+      const promoConfig = await promoConfigRepository.findEligibleConfig(
+        eligibleDto,
       );
 
       // assert
       expect(promoConfig).toEqual(mockPromoConfig);
       expect(spyFindOne).toHaveBeenCalledTimes(1);
-      expect(spyFindOne).toHaveBeenCalledWith({
-        where: {
-          quantity: requestPromoDto.quantity,
-          min_trx: LessThanOrEqual(requestPromoDto.act_trx),
-          max_trx: MoreThan(requestPromoDto.act_trx),
-        },
-      });
     });
 
-    it('should return promo config with actual trx more than equal config max trx', async () => {
+    it('should return eligible config as request with act_trx more than max_trx', async () => {
       // arrange
-      requestPromoDto = {
-        quantity: 1,
-        act_trx: 1500000,
-      };
-
-      mockPromoConfig = {
-        id: faker.datatype.uuid(),
-        quantity: requestPromoDto.quantity,
-        min_trx: 1000000,
-        max_trx: null,
-        prosentase: faker.datatype.float(),
-        promo_code: faker.datatype.string(),
-        promo_quota: faker.datatype.number(),
-        promo_period_start: new Date(),
-        promo_period_end: new Date(),
-        created_at: '2023-01-08T05:41:47.908Z',
-        updated_at: '2023-01-08T05:41:47.908Z',
-        deleted_at: null,
+      const eligibleDto: EligibleConfigDto = {
+        transaction_time: '2023-01-08T00:00:00Z',
+        quantity: mockPromoConfig.quantity,
+        act_trx: 2000000,
+        promo_code: mockPromoProgram.code_key,
       };
 
       const spyFindOne = jest
@@ -177,20 +157,13 @@ describe('PromoConfigRepository', () => {
         .mockResolvedValue(mockPromoConfig);
 
       // act
-      const promoConfig = await promoConfigRepository.findRequestPromo(
-        requestPromoDto,
+      const promoConfig = await promoConfigRepository.findEligibleConfig(
+        eligibleDto,
       );
 
       // assert
       expect(promoConfig).toEqual(mockPromoConfig);
       expect(spyFindOne).toHaveBeenCalledTimes(1);
-      expect(spyFindOne).toHaveBeenCalledWith({
-        where: {
-          quantity: requestPromoDto.quantity,
-          min_trx: LessThanOrEqual(requestPromoDto.act_trx),
-          max_trx: IsNull(),
-        },
-      });
     });
   });
 });

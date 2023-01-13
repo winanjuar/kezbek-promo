@@ -8,7 +8,11 @@ export class PromoTransactionRepository extends Repository<PromoTransaction> {
     super(PromoTransaction, dataSource.createEntityManager());
   }
 
-  async createNewTransaction(promo: Partial<PromoTransaction>) {
-    return await this.save(promo);
+  async createNewTransaction(transactionData: Partial<PromoTransaction>) {
+    return await this.save(transactionData);
+  }
+
+  async getTotal(promo_code: string) {
+    return await this.count({ where: { promo_code } });
   }
 }

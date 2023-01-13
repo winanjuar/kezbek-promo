@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -10,6 +11,16 @@ import {
 export class PromoTransaction {
   @PrimaryColumn('uuid')
   transaction_id: string;
+
+  @Column({ type: 'datetime' })
+  transaction_time: string;
+
+  @Index()
+  @Column('uuid')
+  customer_id: string;
+
+  @Column()
+  promo_code: string;
 
   @Column()
   quantity_origin: number;

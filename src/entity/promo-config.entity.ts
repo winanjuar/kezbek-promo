@@ -3,26 +3,17 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PromoProgram } from './promo-program.entity';
 
 @Entity('promo_config')
 export class PromoConfig {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ nullable: true })
-  promo_code: string;
-
-  @Column({ nullable: true })
-  promo_quota: number;
-
-  @Column({ nullable: true })
-  promo_period_start: Date;
-
-  @Column({ nullable: true })
-  promo_period_end: Date;
 
   @Column()
   quantity: number;
@@ -44,4 +35,8 @@ export class PromoConfig {
 
   @DeleteDateColumn()
   deleted_at: string;
+
+  @ManyToOne(() => PromoProgram, (program) => program.id)
+  @JoinColumn({ name: 'program_id' })
+  program: PromoProgram;
 }

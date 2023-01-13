@@ -5,6 +5,6 @@ export class InternalServerErrorResponseDto extends BaseResponseDto {
   @ApiProperty({ example: 500 })
   statusCode: number;
 
-  @ApiProperty({ example: 'Internal server error' })
+  @ApiProperty({ example: 'This is sampel message internal server error' })
   message: string;
 }

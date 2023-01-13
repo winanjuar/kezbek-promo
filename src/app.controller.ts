@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpStatus,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Post,
 } from '@nestjs/common';
@@ -21,13 +23,23 @@ import {
 import { AppService } from './app.service';
 import { IRequestInfoPromo } from './core/request-info-promo.interface';
 import { IResponseInfoPromo } from './core/response-info-promo.interface';
-import { CreatePromoDto } from './dto/create-promo.dto';
+import { CodeProgramDto } from './dto/request/program/code-program.dto';
 import { BadRequestResponseDto } from './dto/response/bad-request.response.dto';
-import { CreatePromoResponseDto } from './dto/response/create-promo.response.dto';
 import { InternalServerErrorResponseDto } from './dto/response/internal-server-error.response.dto';
-import { MultiPromoResponseDto } from './dto/response/multi-promo.response.dto';
 import { NotFoundResponseDto } from './dto/response/not-found.response.dto';
-import { SinglePromoResponseDto } from './dto/response/single-promo.response.dto';
+import { CreateProgramResponseDto } from './dto/response/program/create-program.response.dto';
+import { SingleProgramResponseDto } from './dto/response/program/single-program.response.dto';
+import { CreateProgramDto } from './dto/request/program/create-program.dto';
+import { CreateConfigDto } from './dto/request/config/create-config.dto';
+import { CreateConfigResponseDto } from './dto/response/config/create-config.response.dto';
+import { MultiConfigResponseDto } from './dto/response/config/multi-config.response.dto';
+import { SingleConfigResponseDto } from './dto/response/config/single-config.response.dto';
+import { EligibleConfigDto } from './dto/request/config/eligible-config.dto';
+import { CreateTransactionDto } from './dto/request/create-transaction.dto';
+import { MultiProgramResponseDto } from './dto/response/program/multi-program.response.dto';
+import { RemainTrainsactionResponseDto } from './dto/response/remain-transaction.response.dto';
+import { CreateTransactionResponseDto } from './dto/response/create-transaction.response.dto';
+
 @ApiTags('Promo')
 @Controller({ version: '1' })
 export class AppController {
@@ -35,57 +47,201 @@ export class AppController {
 
   constructor(private readonly appService: AppService) {}
 
-  @ApiBody({ type: CreatePromoDto })
-  @ApiCreatedResponse({ type: CreatePromoResponseDto })
+  @ApiOkResponse({ type: MultiProgramResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Get('program')
+  async findAllProgram() {
+    try {
+      const configs = await this.appService.findAllProgram();
+      return new MultiProgramResponseDto(
+        HttpStatus.OK,
+        `Get promo program successfully`,
+        configs,
+      );
+    } catch (error) {
+      this.logger.log(`[GET, /program] ${error}`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiBody({ type: CreateProgramDto })
+  @ApiCreatedResponse({ type: CreateProgramResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post()
-  async create(@Body() createPromoDto: CreatePromoDto) {
+  @Post('program')
+  async createProgram(@Body() programDto: CreateProgramDto) {
     try {
-      const promoConfig = await this.appService.create(createPromoDto);
-      return new CreatePromoResponseDto(
+      const program = await this.appService.createProgram(programDto);
+      return new CreateProgramResponseDto(
         HttpStatus.CREATED,
-        `Create promo successfully`,
+        `Create program successfully`,
+        program,
+      );
+    } catch (error) {
+      this.logger.log(`[POST, /program] ${error}`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiOkResponse({ type: SingleProgramResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Get('program/:code_key')
+  async getProgram(@Param() programDto: CodeProgramDto) {
+    try {
+      const program = await this.appService.findOneProgram(programDto.code_key);
+      return new CreateProgramResponseDto(
+        HttpStatus.OK,
+        `Get program successfully`,
+        program,
+      );
+    } catch (error) {
+      this.logger.log(`[GET, /program/:code] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
+    }
+  }
+
+  @ApiOkResponse({ type: MultiConfigResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Get('config')
+  async findAllConfig() {
+    try {
+      const configs = await this.appService.findAllConfig();
+      return new MultiConfigResponseDto(
+        HttpStatus.OK,
+        `Get promo config successfully`,
+        configs,
+      );
+    } catch (error) {
+      this.logger.log(`[GET, /config] ${error}`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiBody({ type: CreateConfigDto })
+  @ApiCreatedResponse({ type: CreateConfigResponseDto })
+  @ApiBadRequestResponse({ type: BadRequestResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Post('config')
+  async createConfig(@Body() configDto: CreateConfigDto) {
+    try {
+      const promoConfig = await this.appService.createConfig(configDto);
+      return new CreateConfigResponseDto(
+        HttpStatus.CREATED,
+        `Create promo config successfully`,
         promoConfig,
       );
     } catch (error) {
-      this.logger.log(`[POST, /] ${error}`);
-      throw new InternalServerErrorException();
+      this.logger.log(`[POST, /config] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
     }
   }
 
-  @ApiOkResponse({ type: MultiPromoResponseDto })
-  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get()
-  async findAll() {
-    try {
-      const promos = await this.appService.findAll();
-      return new MultiPromoResponseDto(
-        HttpStatus.OK,
-        `Get promo config successfully`,
-        promos,
-      );
-    } catch (error) {
-      this.logger.log(`[GET, /] ${error}`);
-      throw new InternalServerErrorException();
-    }
-  }
-
-  @ApiOkResponse({ type: SinglePromoResponseDto })
+  @ApiOkResponse({ type: SingleConfigResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @Get('config/:id')
+  async findOneConfig(@Param('id') id: string) {
     try {
-      const promo = await this.appService.findOnePromo(id);
-      return new SinglePromoResponseDto(
+      const config = await this.appService.findOneConfig(id);
+      return new SingleConfigResponseDto(
         HttpStatus.OK,
-        `Get promo ${id} successfully`,
-        promo,
+        `Get promo config successfully`,
+        config,
       );
     } catch (error) {
-      this.logger.log(`[GET, :id] ${error}`);
-      throw new InternalServerErrorException();
+      this.logger.log(`[GET, config/:id] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
+    }
+  }
+
+  @ApiBody({ type: EligibleConfigDto })
+  @ApiOkResponse({ type: SingleConfigResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @HttpCode(200)
+  @Post('eligible')
+  async findEligibleConfig(@Body() eligibleDto: EligibleConfigDto) {
+    try {
+      const config = await this.appService.findEligibleConfig(eligibleDto);
+      return new SingleConfigResponseDto(
+        HttpStatus.OK,
+        `Get eligible promo successfully`,
+        config,
+      );
+    } catch (error) {
+      this.logger.log(`[GET, config/:id] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
+    }
+  }
+
+  @ApiOkResponse({ type: RemainTrainsactionResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Get('remain/:code')
+  async getRemain(@Param('code') code: string) {
+    try {
+      const remain = await this.appService.getRemain(code);
+      return new RemainTrainsactionResponseDto(
+        HttpStatus.OK,
+        'Get remain quota successfully',
+        remain,
+      );
+    } catch (error) {
+      this.logger.log(`[GET, remain/:code] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
+    }
+  }
+
+  @ApiBody({ type: CreateTransactionDto })
+  @ApiCreatedResponse({ type: CreateTransactionResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Post('transaction')
+  async transactionPromoPoint(@Body() transactionDto: CreateTransactionDto) {
+    try {
+      const transaction = await this.appService.writeTransaction(
+        transactionDto,
+      );
+      return new CreateTransactionResponseDto(
+        HttpStatus.CREATED,
+        `Write transaction successfully`,
+        transaction,
+      );
+    } catch (error) {
+      this.logger.log(`[POST, /transaction] ${error}`);
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
     }
   }
 
@@ -96,22 +252,30 @@ export class AppController {
     try {
       const dataReqPromo: IRequestInfoPromo = {
         transaction_id: data.transaction_id,
+        transaction_time: data.transaction_time,
+        customer_id: data.customer_id,
         act_trx: data.act_trx,
-        quantity: data.quantity,
+        quantity_origin: data.quantity_origin,
         promo_code: data.promo_code,
       };
 
-      const promo = await this.appService.processPromo(dataReqPromo);
+      const promo = await this.appService.processPromoPoint(dataReqPromo);
       this.logger.log(
         `[MessagePattern mp_loyalty_point] [${data.transaction_id}] Calculate promo point successfully`,
       );
       return {
+        transaction_id: promo.transaction_id,
         prosentase: promo.prosentase,
         point: promo.point,
       } as IResponseInfoPromo;
     } catch (error) {
       this.logger.log(`[MessagePattern mp_loyalty_point] ${error}`);
-      throw new InternalServerErrorException();
+      switch (error.response.statusCode) {
+        case 404:
+          throw new NotFoundException(error.response.message);
+        default:
+          throw new InternalServerErrorException(error.response.message);
+      }
     }
   }
 }

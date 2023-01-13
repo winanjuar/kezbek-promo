@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PromoConstanta } from 'src/core/promo.constanta';
-import { CreatePromoDto } from 'src/dto/create-promo.dto';
-import { RequestPromoDto } from 'src/dto/request-promo.dto';
+import { EligibleConfigDto } from 'src/dto/request/config/eligible-config.dto';
 import { PromoConfig } from 'src/entity/promo-config.entity';
 import {
   DataSource,
   IsNull,
   LessThanOrEqual,
   MoreThan,
+  MoreThanOrEqual,
   Repository,
 } from 'typeorm';
 
@@ -17,34 +17,41 @@ export class PromoConfigRepository extends Repository<PromoConfig> {
     super(PromoConfig, dataSource.createEntityManager());
   }
 
-  async createNewPromo(createPromoDto: CreatePromoDto) {
-    return await this.save(createPromoDto);
+  async createNewConfig(configData: Partial<PromoConfig>) {
+    return await this.save(configData);
   }
 
-  async findAll(): Promise<PromoConfig[]> {
-    return this.find();
+  async findAllConfig(): Promise<PromoConfig[]> {
+    return this.find({ relations: ['program'] });
   }
 
-  async findOnePromo(id: string) {
-    return this.findOneBy({ id });
+  async findOneConfig(id: string) {
+    return this.findOne({ relations: ['program'], where: { id } });
   }
 
-  async findRequestPromo(
-    requestPromoDto: Partial<RequestPromoDto>,
-  ): Promise<PromoConfig> {
-    if (requestPromoDto.act_trx < PromoConstanta.MAX_TRX) {
+  async findEligibleConfig(eligibleDto: EligibleConfigDto) {
+    const defaultCondition = {
+      quantity: eligibleDto.quantity,
+      min_trx: LessThanOrEqual(eligibleDto.act_trx),
+      program: {
+        code_key: eligibleDto.promo_code,
+        period_start: LessThanOrEqual(eligibleDto.transaction_time),
+        period_end: MoreThanOrEqual(eligibleDto.transaction_time),
+      },
+    };
+    if (eligibleDto.act_trx < PromoConstanta.MAX_TRX) {
       return this.findOne({
+        relations: ['program'],
         where: {
-          quantity: requestPromoDto.quantity,
-          min_trx: LessThanOrEqual(requestPromoDto.act_trx),
-          max_trx: MoreThan(requestPromoDto.act_trx),
+          ...defaultCondition,
+          max_trx: MoreThan(eligibleDto.act_trx),
         },
       });
     } else {
       return this.findOne({
+        relations: ['program'],
         where: {
-          quantity: requestPromoDto.quantity,
-          min_trx: LessThanOrEqual(requestPromoDto.act_trx),
+          ...defaultCondition,
           max_trx: IsNull(),
         },
       });

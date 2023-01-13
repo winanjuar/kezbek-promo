@@ -1,52 +1,51 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
+import { ProgramDto } from './program.dto';
 
-export class PromoDto {
+export class ConfigDto {
   @ApiProperty()
   @IsUUID()
   id: string;
 
   @ApiProperty()
-  @IsString()
-  promo_code: string;
-
-  @ApiProperty()
   @IsNumber()
-  promo_quota: number;
-
-  @ApiProperty()
-  @IsDate()
-  promo_period_start: Date;
-
-  @ApiProperty()
-  @IsDate()
-  promo_period_end: Date;
-
-  @ApiProperty()
-  @IsNumber()
+  @IsNotEmpty()
   quantity: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   min_trx: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsNumber()
   max_trx: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   prosentase: number;
 
   @ApiProperty()
-  @IsString()
+  @IsDateString()
   created_at: string;
 
   @ApiProperty()
-  @IsString()
+  @IsDateString()
   updated_at: string;
 
   @ApiProperty()
-  @IsString()
+  @IsDateString()
+  @IsOptional()
   deleted_at: string;
+
+  @ApiProperty()
+  program: ProgramDto;
 }
