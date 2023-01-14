@@ -39,6 +39,7 @@ import { CreateTransactionDto } from './dto/request/create-transaction.dto';
 import { MultiProgramResponseDto } from './dto/response/program/multi-program.response.dto';
 import { RemainTrainsactionResponseDto } from './dto/response/remain-transaction.response.dto';
 import { CreateTransactionResponseDto } from './dto/response/create-transaction.response.dto';
+import { EPatternMessage } from './core/pattern-message.enum';
 
 @ApiTags('Promo')
 @Controller({ version: '1' })
@@ -49,17 +50,19 @@ export class AppController {
 
   @ApiOkResponse({ type: MultiProgramResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get('program')
+  @Get('try-program')
   async findAllProgram() {
+    const logIdentifier = 'GET try-program';
     try {
       const configs = await this.appService.findAllProgram();
+      this.logger.log(`[${logIdentifier}] Get promo program successfully`);
       return new MultiProgramResponseDto(
         HttpStatus.OK,
         `Get promo program successfully`,
         configs,
       );
     } catch (error) {
-      this.logger.log(`[GET, /program] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       throw new InternalServerErrorException();
     }
   }
@@ -68,17 +71,21 @@ export class AppController {
   @ApiCreatedResponse({ type: CreateProgramResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post('program')
+  @Post('try-program')
   async createProgram(@Body() programDto: CreateProgramDto) {
+    const logIdentifier = 'POST try-program';
     try {
       const program = await this.appService.createProgram(programDto);
+      this.logger.log(
+        `[${logIdentifier}] [${program.id}] Create promo program successfully`,
+      );
       return new CreateProgramResponseDto(
         HttpStatus.CREATED,
-        `Create program successfully`,
+        `Create promo program successfully`,
         program,
       );
     } catch (error) {
-      this.logger.log(`[POST, /program] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       throw new InternalServerErrorException();
     }
   }
@@ -86,17 +93,21 @@ export class AppController {
   @ApiOkResponse({ type: SingleProgramResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get('program/:code_key')
+  @Get('try-program/:code_key')
   async getProgram(@Param() programDto: CodeProgramDto) {
+    const logIdentifier = 'GET try-program/:code_key';
     try {
       const program = await this.appService.findOneProgram(programDto.code_key);
-      return new CreateProgramResponseDto(
+      this.logger.log(
+        `[${logIdentifier}] [${program.id}] Get promo program successfully`,
+      );
+      return new SingleProgramResponseDto(
         HttpStatus.OK,
-        `Get program successfully`,
+        `Get promo program successfully`,
         program,
       );
     } catch (error) {
-      this.logger.log(`[GET, /program/:code] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -107,17 +118,19 @@ export class AppController {
 
   @ApiOkResponse({ type: MultiConfigResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get('config')
+  @Get('try-config')
   async findAllConfig() {
+    const logIdentifier = 'GET try-config';
     try {
       const configs = await this.appService.findAllConfig();
+      this.logger.log(`[${logIdentifier}] Get promo config successfully`);
       return new MultiConfigResponseDto(
         HttpStatus.OK,
         `Get promo config successfully`,
         configs,
       );
     } catch (error) {
-      this.logger.log(`[GET, /config] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       throw new InternalServerErrorException();
     }
   }
@@ -127,17 +140,21 @@ export class AppController {
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post('config')
+  @Post('try-config')
   async createConfig(@Body() configDto: CreateConfigDto) {
+    const logIdentifier = 'POST try-config';
     try {
       const promoConfig = await this.appService.createConfig(configDto);
+      this.logger.log(
+        `[${logIdentifier}] [${promoConfig.id}] Create promo config successfully`,
+      );
       return new CreateConfigResponseDto(
         HttpStatus.CREATED,
         `Create promo config successfully`,
         promoConfig,
       );
     } catch (error) {
-      this.logger.log(`[POST, /config] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -149,17 +166,21 @@ export class AppController {
   @ApiOkResponse({ type: SingleConfigResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get('config/:id')
+  @Get('try-config/:id')
   async findOneConfig(@Param('id') id: string) {
+    const logIdentifier = 'GET try-config/:id';
     try {
       const config = await this.appService.findOneConfig(id);
+      this.logger.log(
+        `[${logIdentifier}] [${config.id}] Get promo config successfully`,
+      );
       return new SingleConfigResponseDto(
         HttpStatus.OK,
         `Get promo config successfully`,
         config,
       );
     } catch (error) {
-      this.logger.log(`[GET, config/:id] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -173,17 +194,21 @@ export class AppController {
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
   @HttpCode(200)
-  @Post('eligible')
+  @Post('try-eligible')
   async findEligibleConfig(@Body() eligibleDto: EligibleConfigDto) {
+    const logIdentifier = 'POST try-eligible';
     try {
       const config = await this.appService.findEligibleConfig(eligibleDto);
+      this.logger.log(
+        `[${logIdentifier}] [${config.id}] Get eligible promo successfully`,
+      );
       return new SingleConfigResponseDto(
         HttpStatus.OK,
         `Get eligible promo successfully`,
         config,
       );
     } catch (error) {
-      this.logger.log(`[GET, config/:id] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -195,17 +220,19 @@ export class AppController {
   @ApiOkResponse({ type: RemainTrainsactionResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Get('remain/:code')
+  @Get('try-remain/:code')
   async getRemain(@Param('code') code: string) {
+    const logIdentifier = 'GET try-remain/:code';
     try {
       const remain = await this.appService.getRemain(code);
+      this.logger.log(`[${logIdentifier}] Get remain quota successfully`);
       return new RemainTrainsactionResponseDto(
         HttpStatus.OK,
         'Get remain quota successfully',
         remain,
       );
     } catch (error) {
-      this.logger.log(`[GET, remain/:code] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -218,11 +245,15 @@ export class AppController {
   @ApiCreatedResponse({ type: CreateTransactionResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post('transaction')
+  @Post('try-transaction')
   async transactionPromoPoint(@Body() transactionDto: CreateTransactionDto) {
+    const logIdentifier = 'POST try-transaction';
     try {
       const transaction = await this.appService.writeTransaction(
         transactionDto,
+      );
+      this.logger.log(
+        `[${logIdentifier}] [${transaction.transaction_id}] Write transaction successfully`,
       );
       return new CreateTransactionResponseDto(
         HttpStatus.CREATED,
@@ -230,7 +261,7 @@ export class AppController {
         transaction,
       );
     } catch (error) {
-      this.logger.log(`[POST, /transaction] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {
@@ -239,7 +270,7 @@ export class AppController {
     }
   }
 
-  @MessagePattern('mp_transaction_point')
+  @MessagePattern(EPatternMessage.CALCULATE_TRANSACTION_POINT)
   async handleTransactionPoint(
     @Payload() data: IRequestInfoPromo,
   ): Promise<IResponseInfoPromo> {
@@ -255,7 +286,7 @@ export class AppController {
 
       const promo = await this.appService.processPromoPoint(dataReqPromo);
       this.logger.log(
-        `[MessagePattern mp_loyalty_point] [${data.transaction_id}] Calculate promo point successfully`,
+        `[${EPatternMessage.CALCULATE_TRANSACTION_POINT}] [${data.transaction_id}] Calculate promo point successfully`,
       );
       return {
         transaction_id: promo.transaction_id,
@@ -263,7 +294,9 @@ export class AppController {
         point: promo.point,
       } as IResponseInfoPromo;
     } catch (error) {
-      this.logger.log(`[MessagePattern mp_loyalty_point] ${error}`);
+      this.logger.log(
+        `[${EPatternMessage.CALCULATE_TRANSACTION_POINT}] ${error}`,
+      );
       if (error.response.statusCode === 404) {
         throw new NotFoundException(error.response.message);
       } else {

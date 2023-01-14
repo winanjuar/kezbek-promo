@@ -142,7 +142,7 @@ describe('AppController', () => {
 
       const mockResponse = new CreateProgramResponseDto(
         HttpStatus.CREATED,
-        `Create program successfully`,
+        `Create promo program successfully`,
         mockPromoProgram,
       );
 
@@ -202,7 +202,7 @@ describe('AppController', () => {
 
       const mockResponse = new SingleProgramResponseDto(
         HttpStatus.OK,
-        `Get program successfully`,
+        `Get promo program successfully`,
         mockPromoProgram,
       );
 
