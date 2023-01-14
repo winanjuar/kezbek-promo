@@ -225,7 +225,9 @@ export class AppController {
     const logIdentifier = 'GET try-remain/:code';
     try {
       const remain = await this.appService.getRemain(code);
-      this.logger.log(`[${logIdentifier}] Get remain quota successfully`);
+      this.logger.log(
+        `[${logIdentifier}] [${remain.program_id}] Get remain quota successfully`,
+      );
       return new RemainTrainsactionResponseDto(
         HttpStatus.OK,
         'Get remain quota successfully',

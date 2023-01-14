@@ -330,6 +330,7 @@ describe('AppService', () => {
         .mockResolvedValue(mockTotal);
 
       const mockResult = {
+        program_id: mockPromoProgram.id,
         quota: mockPromoProgram.quota,
         total: mockTotal,
         remain: mockPromoProgram.quota - mockTotal,
