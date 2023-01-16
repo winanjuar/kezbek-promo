@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppService } from './app.service';
+import { PromoConstanta } from './core/promo.constanta';
 import { IRequestInfoPromo } from './core/request-info-promo.interface';
 import { IResponseInfoPromo } from './core/response-info-promo.interface';
 import { CreateConfigDto } from './dto/request/config/create-config.dto';
@@ -442,6 +443,43 @@ describe('AppService', () => {
       expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
     });
 
+    it('should return new transaction just created with quantity_origin equal with max qty', async () => {
+      // arrange
+      mockPromoTransaction.quantity_origin = PromoConstanta.MAX_QUANTITY;
+
+      const transactionDto: CreateTransactionDto = {
+        transaction_id: mockPromoTransaction.transaction_id,
+        transaction_time: mockPromoTransaction.transaction_time,
+        customer_id: mockPromoTransaction.customer_id,
+        quantity_origin: mockPromoTransaction.quantity_origin,
+        act_trx: mockPromoTransaction.act_trx,
+        promo_code: mockPromoTransaction.promo_code,
+      };
+
+      const spyFindOneProgramByCode = jest
+        .spyOn(promoProgramRepository, 'findOneProgramByCode')
+        .mockResolvedValue(mockPromoProgram);
+
+      const spyFindEligibleConfig = jest
+        .spyOn(promoConfigRepository, 'findEligibleConfig')
+        .mockResolvedValue(mockPromoConfig);
+
+      const spyCreateNewTransaction = jest
+        .spyOn(promoTransactionRepository, 'createNewTransaction')
+        .mockResolvedValue(mockPromoTransaction);
+
+      // act
+      const promoTransaction = await appService.writeTransaction(
+        transactionDto,
+      );
+
+      // assert
+      expect(promoTransaction).toEqual(mockPromoTransaction);
+      expect(spyFindOneProgramByCode).toHaveBeenCalledTimes(1);
+      expect(spyFindEligibleConfig).toHaveBeenCalledTimes(1);
+      expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
+    });
+
     it('should return new transaction just created with quantity_origin more than max qty', async () => {
       // arrange
       mockPromoTransaction.quantity_origin = 10;
@@ -484,6 +522,47 @@ describe('AppService', () => {
     it('should return new transaction with point just created', async () => {
       // arrange
       mockPromoTransaction.quantity_origin = 3;
+
+      const dataReqPromo: IRequestInfoPromo = {
+        transaction_id: mockPromoTransaction.transaction_id,
+        transaction_time: mockPromoTransaction.transaction_time,
+        customer_id: mockPromoTransaction.customer_id,
+        quantity_origin: mockPromoTransaction.quantity_origin,
+        act_trx: mockPromoTransaction.act_trx,
+        promo_code: mockPromoTransaction.promo_code,
+      };
+
+      const spyFindOneProgramByCode = jest
+        .spyOn(promoProgramRepository, 'findOneProgramByCode')
+        .mockResolvedValue(mockPromoProgram);
+
+      const spyFindEligibleConfig = jest
+        .spyOn(promoConfigRepository, 'findEligibleConfig')
+        .mockResolvedValue(mockPromoConfig);
+
+      const spyCreateNewTransaction = jest
+        .spyOn(promoTransactionRepository, 'createNewTransaction')
+        .mockResolvedValue(mockPromoTransaction);
+
+      const mockResult: IResponseInfoPromo = {
+        transaction_id: dataReqPromo.transaction_id,
+        prosentase: mockPromoTransaction.prosentase,
+        point: mockPromoTransaction.point,
+      } as IResponseInfoPromo;
+
+      // act
+      const promoTransaction = await appService.processPromoPoint(dataReqPromo);
+
+      // assert
+      expect(promoTransaction).toEqual(mockResult);
+      expect(spyFindOneProgramByCode).toHaveBeenCalledTimes(1);
+      expect(spyFindEligibleConfig).toHaveBeenCalledTimes(1);
+      expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return new transaction with point just created with quantity_origin equal with max qty', async () => {
+      // arrange
+      mockPromoTransaction.quantity_origin = PromoConstanta.MAX_QUANTITY;
 
       const dataReqPromo: IRequestInfoPromo = {
         transaction_id: mockPromoTransaction.transaction_id,

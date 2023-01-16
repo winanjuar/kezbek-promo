@@ -821,7 +821,7 @@ describe('AppController', () => {
       expect(spyProcessPromoPoint).toHaveBeenCalledWith(dataReqPromo);
     });
 
-    it('should throw internal server error when unknown error occured', async () => {
+    it('should throw not found when promo does not exist', async () => {
       // arrange
       const spyProcessPromoPoint = jest
         .spyOn(appService, 'processPromoPoint')
